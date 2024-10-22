@@ -1,6 +1,6 @@
 const {DataTypes} = require('sequelize');
 const {sequelize} = require('../db/db');
-const { PASSWORD } = require('../config/db.config');
+const Role = require('./roles')
 
 const User = sequelize.define('User', {
     // Поля модели
@@ -20,5 +20,9 @@ const User = sequelize.define('User', {
 }, {
     tableName: 'users'
 })
+
+// Определение связи "многие ко многим" с таблицей Role через вспомогательную таблицу UserRoles
+User.belongsToMany(Role, { through: 'UserRoles' });
+Role.belongsToMany(User, { through: 'UserRoles' });
 
 module.exports = User;
