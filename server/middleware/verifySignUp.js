@@ -2,51 +2,42 @@ const { verify } = require('jsonwebtoken');
 const Role = require('../models/roles');
 const User = require('../models/users');
 
-checkDuplicateUsernameOrEmail = (req, res, next) => {
+checkDuplicateUsernameOrEmail = async (req, res, next) => {
     
     const {username, email} = req.body;
 
-    User.findOne({
-        where: username
-    })
-    .then(user => {
-        if (user){
-            res.status(400).send({
-                message: "Username is already in use"
-            });
-            return;
-        }
-
-        User.findOne({
-            where: email
-        })
-        .then(user => {
-            if (user) {
-                res.status(400).send({
-                    message: "Email is already in use"
-                });
-                return;
-            }
-            next();
-        });
+    const existUsernameUser = await User.findOne({
+        where: {username}
     });
+
+    if (existUsernameUser){
+        return res.status(400).json({ message: 'Пользователь с таким именем уже существует' });
+    }
+
+    const existEmailUser = await User.findOne({
+        where: {email}
+    })
+
+    if (existEmailUser){
+        return res.status(400).json({ message: 'Пользователь с таким email уже существует' });
+    }
+
+    next();
 };
 
-checkRolesExisted = (req, res, next) => {
-    const {roles} = req.body;
+checkRolesExisted = async (req, res, next) => {
+    const {role} = req.body;
 
-    if (roles) {
-        for (let i = 0; i <= roles.length; i++){
-            if(!Role.includes(roles[i])){
-                res.status(400).send({
-                    message: "Failed! Role does not exist = " + roles[i]
-                });
-                return;
-            }
-        }
+    const checkRole = await Role.findOne({
+        where: {role}
+    })
+
+    if (!checkRole){
+        return res.status(400).json({message: "Не существует такой роли"})
     }
+    
     next();
-}
+};
 
 const verifySignUp = {
     checkDuplicateUsernameOrEmail: checkDuplicateUsernameOrEmail,
