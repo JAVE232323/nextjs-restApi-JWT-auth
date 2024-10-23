@@ -9,5 +9,5 @@ module.exports = function(app) {
         controller.signup
     );
     
-    app.post("/api/auth/sighin", controller.signin)
+    app.post("/api/auth/signin", controller.signin)
 }

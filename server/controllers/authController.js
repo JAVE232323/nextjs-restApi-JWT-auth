@@ -25,52 +25,44 @@ exports.signup = async (req, res) => {
     }
 }
 
-exports.signin = (req, res) => {
-    const {username, password} = req.body;
+exports.signin = async (req, res) => {
+    try {
+        const {username, email, password} = req.body;
     
-    User.findOne({
-        where: username
-    })
-    .then(user => {
-        if (!user) {
-            return res.status(404).send({message: 'User not found'})
-        }
+        const UsernameUser = await User.findOne({
+            where: {username}
+        });
 
-        const validPassword = bcrypt.compareSync(password, user.password);
-
-        if (!validPassword){
-            return res.status(401).send({
-                accessToken: null,
-                message: "Invalid Password!!!"
-            })
-        }
-
-        const token = jwt.sign(
-            { id: user.id},
-            config.secret,
-            {
-                algorithm: 'HS256',
-                allowInsecureKeySizes: true,
-                expiresInL:86400,
-            }
-        )
-
-        const authorities = [];
-        user.getRoles().then(roles => {
-            for (let i = 0; i < roles.length; i++) {
-                authorities.push("ROLE_" + roles[i].name.toUpperCase());
-            }
-            res.status(200).send({
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                roles: authorities,
-                accessToken: token
-            });
+        const user = await User.findOne({
+            where: {username}
         })
-    })
-    .catch(err => {
-        res.status(500).send({message: err.message})
-    })
+
+        if (!user) {
+            return res.status(404).json({message:"Пользователь не найден"})
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid){
+            return res.status(401).json({message:"Не верно введен пароль"})
+        }
+
+        const token = jwt.sign({
+            userId: user.id,
+            username: user.username,
+            email: user.email
+        },
+        config.secret,
+        {
+            expiresIn: '1h'
+        }
+    )
+
+    res.json({token, message: "Авторизация успешна"})
+        
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ message: 'Ошибка при авторизации' });
+    }
 
 } 
