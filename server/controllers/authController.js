@@ -8,16 +8,16 @@ exports.signup = async (req, res) => {
     try{
         const {username, email, password, role} = req.body;
 
-        const hidePassword = bcrypt.hashSync(password)
+        const hashedPassword  = await bcrypt.hash(password, 7)
 
-        const newUser = await User.create({username, email, hidePassword});
+        const newUser = await User.create({username, email, password: hashedPassword });
         
-        const userRole = await Role.findOrCreate({
+        const [userRole] = await Role.findOrCreate({
             where: {role: role}
         });
 
         await newUser.addRole(userRole);
-
+        
         res.json({ user: newUser, role: userRole })
     } catch (e) {
         console.error(e);
