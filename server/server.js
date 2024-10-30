@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const passport = require('passport')
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { connectDB, sequelize} = require('./db/db')
 const User = require('./models/users')
 const Role = require('./models/roles');
@@ -15,18 +17,30 @@ authRoute(app);
 
 connectDB();
 
+passport.use(new GoogleStrategy({
+    clientID: "215007847569-5q43ke2a1ars0ucfvgj2hvqool8u73kn.apps.googleusercontent.com",
+    clientSecret: "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",
+    callbackURL: 'http://localhost:5000/auth/google/callback'
+    },
+    (accessToken, refreshToken, profile, done) => {
+        console.log(accessToken)
+        return done(null, profile)
+    }));
+
+app.use(passport.initialize());
+
+
 sequelize.sync({force: true})
     .then(() => {
         console.log('Таблицы успешно созданы')
     })
     .catch((err) => {
         console.error('Ошибка синхронизации таблиц:', err);
-    })
-
+    });
 
 
 app.get('/', (req, res) => {
-    res.json({"message": '123'})
+    res.json({"message": 'Главная страница'})
 });
 
 app.get('/users', async (req, res) => {
