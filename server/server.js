@@ -61,3 +61,10 @@ app.post('/roles', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`server started on Port ${PORT}`)
 });
+
+
+//start server. In terminal:
+// cd server
+// npm start
+// To close server ctrl+c, y
+
